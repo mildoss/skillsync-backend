@@ -26,15 +26,29 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  FREELANCE
+  CONTRACT
+}
+
 model User {
-  id        String   @id
-  email     String   @unique
-  role      Role     @default(APPLICANT)
-  name      String
-  avatarUrl String?
-  bio       String?
-  skills    String[]
-  cvUrl     String?
+  id              String           @id
+  email           String           @unique
+  role            Role             @default(APPLICANT)
+  name            String
+  position        String?
+  category        String?
+  location        String?
+  experience      Float?
+  languages       String[]
+  employmentTypes EmploymentType[]
+  workFormats     VacancyType[]
+  about           String?
+  skills          String[]
+  avatarUrl       String?
+  cvUrl           String?
 
   vacancies    Vacancy[]     @relation("EmployerVacancies")
   applications Application[] @relation("ApplicantApplications")
