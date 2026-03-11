@@ -33,6 +33,14 @@ enum EmploymentType {
   CONTRACT
 }
 
+enum CompanyType {
+  PRODUCT
+  OUTSOURCE
+  OUTSTAFF
+  STARTUP
+  AGENCY
+}
+
 model User {
   id              String           @id
   email           String           @unique
@@ -49,6 +57,7 @@ model User {
   skills          String[]
   avatarUrl       String?
   cvUrl           String?
+  companyType     CompanyType?
 
   vacancies    Vacancy[]     @relation("EmployerVacancies")
   applications Application[] @relation("ApplicantApplications")

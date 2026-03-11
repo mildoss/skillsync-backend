@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsArray, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsUrl, IsEnum } from 'class-validator';
+import { CompanyType } from '../../../generated/prisma/enums';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -21,4 +22,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsUrl()
   cvUrl?: string;
+
+  @IsOptional()
+  @IsEnum(CompanyType)
+  companyType?: CompanyType;
 }
