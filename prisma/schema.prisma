@@ -41,25 +41,70 @@ enum CompanyType {
   AGENCY
 }
 
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  users     User[]
+  vacancies Vacancy[]
+}
+
+model Skill {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  users     User[]
+  vacancies Vacancy[]
+}
+
+model Language {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  users     User[]
+  vacancies Vacancy[]
+}
+
+model Company {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?     @db.Text
+  logoUrl     String?
+  websiteUrl  String?
+  companyType CompanyType
+
+  employees User[]
+  vacancies Vacancy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id              String           @id
   email           String           @unique
   role            Role             @default(APPLICANT)
   name            String
   position        String?
-  category        String?
   location        String?
   experience      Float?
-  languages       String[]
+  languages       Language[]
+  skills          Skill[]
   employmentTypes EmploymentType[]
   workFormats     VacancyType[]
-  about           String?
-  skills          String[]
+  about           String?          @db.Text
   avatarUrl       String?
   cvUrl           String?
-  companyType     CompanyType?
 
-  vacancies    Vacancy[]     @relation("EmployerVacancies")
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  companyId  String?
+  company    Company?  @relation(fields: [companyId], references: [id])
+
   applications Application[] @relation("ApplicantApplications")
   messages     Message[]     @relation("UserMessages")
 
@@ -70,20 +115,22 @@ model User {
 model Vacancy {
   id          String      @id @default(uuid())
   title       String
-  description String
+  description String      @db.Text
   salaryMin   Int?
   salaryMax   Int?
   currency    String      @default("USD")
   type        VacancyType @default(REMOTE)
   location    String?
   domain      String?
-  category    String?
-  experience  String?
-  tags        String[]
+  experience  Float?
   isActive    Boolean     @default(true)
+  languages   Language[]
+  skills      Skill[]
 
-  employerId String
-  employer   User   @relation("EmployerVacancies", fields: [employerId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  companyId  String
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   applications Application[]
 
@@ -93,7 +140,7 @@ model Vacancy {
 
 model Application {
   id          String            @id @default(uuid())
-  coverLetter String?
+  coverLetter String?           @db.Text
   status      ApplicationStatus @default(PENDING)
 
   applicantId String
@@ -112,7 +159,7 @@ model Application {
 
 model Message {
   id   String @id @default(uuid())
-  text String
+  text String @db.Text
 
   applicationId String
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)

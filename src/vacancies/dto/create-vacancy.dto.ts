@@ -1,5 +1,6 @@
-import { IsString, IsOptional, IsArray, IsInt, IsEnum, IsBoolean } from 'class-validator';
+import {IsString, IsOptional, IsArray, IsInt, IsEnum, IsBoolean, IsNumber} from 'class-validator';
 import {VacancyType} from "../../../generated/prisma/enums";
+import {Type} from "class-transformer";
 
 export class CreateVacancyDto {
   @IsString()
@@ -34,16 +35,22 @@ export class CreateVacancyDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
+  categoryId?: string;
 
   @IsOptional()
-  @IsString()
-  experience?: string;
+  @Type(() => Number)
+  @IsNumber()
+  experience?: number;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  skills?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
 
   @IsOptional()
   @IsBoolean()

@@ -10,19 +10,29 @@ export class VacanciesService {
   constructor(private prisma: PrismaService) {}
 
   async create(employerId: string, createVacancyDto: CreateVacancyDto) {
+    const hr = await this.prisma.user.findUnique({ where: { id: employerId } });
+
+    if (!hr || !hr.companyId) {
+      throw new ForbiddenException('You must be attached to a company to create vacancies');
+    }
+
+    const { skills, languages, ...restData } = createVacancyDto;
+
     return this.prisma.vacancy.create({
       data: {
-        ...createVacancyDto,
-        employerId,
+        ...restData,
+        companyId: hr.companyId,
+        skills: skills ? { connect: skills.map((id) => ({ id })) } : undefined,
+        languages: languages ? { connect: languages.map((id) => ({ id })) } : undefined,
       }
-    })
+    });
   }
 
   async findAll(query: SearchVacanciesDto) {
     const {
-      search, category, domain, location, experience,
-      type, companyType, tags, salaryMin, isActive,
-      page, limit,
+      search, categoryId, domain, location, experience,
+      type, companyType, skills, salaryMin, isActive,
+      languages ,page, limit,
     } = query;
 
     const skip = (page - 1) * limit;
@@ -35,10 +45,13 @@ export class VacanciesService {
       ];
     }
 
-    if (category) where.category = {equals: category, mode: 'insensitive'};
+    if (categoryId) where.categoryId = categoryId;
     if (domain) where.domain = {equals: domain, mode: 'insensitive'};
     if (location) where.location = {contains: location, mode: 'insensitive'};
-    if (experience) where.experience = {equals: experience};
+
+    if (experience !== undefined) {
+      where.experience = { lte: experience };
+    }
 
     if (salaryMin !== undefined) {
       where.OR = [
@@ -53,13 +66,16 @@ export class VacanciesService {
     }
 
     if (companyType && companyType.length > 0) {
-      where.employer = {
+      where.company = {
         companyType: { in: companyType }
       };
     }
 
-    if (tags && tags.length > 0) {
-      where.tags = {hasSome: tags};
+    if (skills && skills.length > 0) {
+      where.skills = { some: { id: { in: skills } } };
+    }
+    if (languages && languages.length > 0) {
+      where.languages = { some: { id: { in: languages } } };
     }
 
     const [vacancies, total] = await Promise.all([
@@ -68,9 +84,12 @@ export class VacanciesService {
         skip,
         take: limit,
         include: {
-          employer: {
-            select: { id: true, name: true, avatarUrl: true, companyType: true }
-          }
+          category: true,
+          company: {
+            select: { id: true, name: true, logoUrl: true, companyType: true }
+          },
+          skills: true,
+          languages: true,
         },
         orderBy: {createdAt: 'desc'}
       }),
@@ -92,8 +111,8 @@ export class VacanciesService {
     const vacancy = await this.prisma.vacancy.findUnique({
       where: { id },
       include: {
-        employer: {
-          select: { id: true, name: true, about: true, avatarUrl: true, companyType: true }
+        company: {
+          select: { id: true, name: true, description: true, logoUrl: true, companyType: true, websiteUrl: true }
         }
       }
     });
@@ -104,22 +123,30 @@ export class VacanciesService {
 
   async update(id: string, employerId: string, updateVacancyDto: UpdateVacancyDto) {
     const vacancy = await this.findOne(id);
+    const hr = await this.prisma.user.findUnique({ where: { id: employerId } });
 
-    if (vacancy.employerId !== employerId) {
-      throw new ForbiddenException('You can only update your own vacancies');
+    if (vacancy.companyId !== hr?.companyId) {
+      throw new ForbiddenException('You can only update vacancies of your company');
     }
+
+    const { skills, languages, ...restData } = updateVacancyDto;
 
     return this.prisma.vacancy.update({
       where: { id },
-      data: updateVacancyDto,
+      data: {
+        ...restData,
+        skills: skills ? { set: skills.map((skillId) => ({ id: skillId })) } : undefined,
+        languages: languages ? { set: languages.map((langId) => ({ id: langId })) } : undefined,
+      },
     });
   }
 
   async remove(id: string, employerId: string) {
     const vacancy = await this.findOne(id);
+    const hr = await this.prisma.user.findUnique({ where: { id: employerId } });
 
-    if (vacancy.employerId !== employerId) {
-      throw new ForbiddenException('You can only delete your own vacancies');
+    if (vacancy.companyId !== hr?.companyId) {
+      throw new ForbiddenException('You can only delete vacancies of your company');
     }
 
     return this.prisma.vacancy.delete({
@@ -127,3 +154,4 @@ export class VacanciesService {
     });
   }
 }
+

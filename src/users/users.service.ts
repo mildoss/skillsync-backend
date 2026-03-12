@@ -12,7 +12,7 @@ export class UsersService {
     const {
       search,
       skills,
-      category,
+      categoryId,
       location,
       experience,
       languages,
@@ -35,8 +35,8 @@ export class UsersService {
       ];
     }
 
-    if (category) {
-      where.category = { equals: category, mode: 'insensitive' };
+    if (categoryId) {
+      where.categoryId = categoryId;
     }
 
     if (location) {
@@ -48,11 +48,11 @@ export class UsersService {
     }
 
     if (skills && skills.length > 0) {
-      where.skills = { hasSome: skills };
+      where.skills = { some: { id: { in: skills } } };
     }
 
     if (languages && languages.length > 0) {
-      where.languages = { hasSome: languages };
+      where.languages = { some: { id: { in: languages } } };
     }
 
     if (employmentTypes && employmentTypes.length > 0) {
@@ -81,6 +81,7 @@ export class UsersService {
           employmentTypes: true,
           avatarUrl: true,
           about: true,
+          company: true,
         },
         orderBy: { createdAt: 'desc' },
       }),
@@ -112,10 +113,15 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.findOne(id);
+    const { skills, languages, ...restData } = updateUserDto;
 
     return this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: {
+        ...restData,
+        skills: skills ? { set: skills.map((skillId) => ({ id: skillId })) } : undefined,
+        languages: languages ? { set: languages.map((langId) => ({ id: langId })) } : undefined,
+      },
     });
   }
 }

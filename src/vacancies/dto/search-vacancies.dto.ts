@@ -9,7 +9,7 @@ export class SearchVacanciesDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
+  categoryId?: string;
 
   @IsOptional()
   @IsString()
@@ -20,8 +20,9 @@ export class SearchVacanciesDto {
   location?: string;
 
   @IsOptional()
-  @IsString()
-  experience?: string;
+  @Type(() => Number)
+  @IsNumber()
+  experience?: number;
 
   @IsOptional()
   @Transform(({ value }) => value.split(','))
@@ -37,7 +38,13 @@ export class SearchVacanciesDto {
   @Transform(({ value }) => value.split(','))
   @IsArray()
   @IsString({ each: true })
-  tags?: string[];
+  skills?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => value.split(','))
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
 
   @IsOptional()
   @Type(() => Number)
