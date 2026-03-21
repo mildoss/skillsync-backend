@@ -111,6 +111,9 @@ export class VacanciesService {
     const vacancy = await this.prisma.vacancy.findUnique({
       where: { id },
       include: {
+        category: true,
+        skills: true,
+        languages: true,
         company: {
           select: { id: true, name: true, description: true, logoUrl: true, companyType: true, websiteUrl: true }
         }
