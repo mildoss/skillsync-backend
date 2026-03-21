@@ -41,6 +41,17 @@ enum CompanyType {
   AGENCY
 }
 
+enum CompanyRole {
+  OWNER
+  RECRUITER
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Category {
   id   String @id @default(uuid())
   name String @unique
@@ -77,8 +88,9 @@ model Company {
   websiteUrl  String?
   companyType CompanyType
 
-  employees User[]
-  vacancies Vacancy[]
+  employees    User[]
+  vacancies    Vacancy[]
+  joinRequests CompanyJoinRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -88,6 +100,7 @@ model User {
   id              String           @id
   email           String           @unique
   role            Role             @default(APPLICANT)
+  companyRole     CompanyRole?
   name            String
   position        String?
   location        String?
@@ -100,10 +113,11 @@ model User {
   avatarUrl       String?
   cvUrl           String?
 
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-  companyId  String?
-  company    Company?  @relation(fields: [companyId], references: [id])
+  categoryId   String?
+  category     Category?            @relation(fields: [categoryId], references: [id])
+  companyId    String?
+  company      Company?             @relation(fields: [companyId], references: [id])
+  joinRequests CompanyJoinRequest[]
 
   applications Application[] @relation("ApplicantApplications")
   messages     Message[]     @relation("UserMessages")
@@ -168,4 +182,20 @@ model Message {
   sender   User   @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+model CompanyJoinRequest {
+  id     String        @id @default(uuid())
+  status RequestStatus @default(PENDING)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, companyId]) // Чтобы нельзя было спамить заявками в одну компанию
 }
