@@ -8,6 +8,26 @@ import { Prisma, Role } from '../../generated/prisma/client';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
+  async createUser(payload: { userId: number, email: string, username: string, role: Role }) {
+    const { userId, email, username, role } = payload;
+    const safeId = String(userId);
+
+    try {
+      await this.prisma.user.upsert({
+        where: { id: safeId },
+        update: {},
+        create: {
+          id: safeId,
+          email,
+          name: username,
+          role,
+        },
+      });
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
   async findAll(query: SearchUsersDto) {
     const {
       search,
