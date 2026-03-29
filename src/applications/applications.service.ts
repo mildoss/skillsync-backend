@@ -9,12 +9,6 @@ export class ApplicationsService {
   constructor(private prisma: PrismaService) {}
 
   async create(applicantId: string, createApplicationDto: CreateApplicationDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: applicantId } });
-
-    if (user?.role !== 'APPLICANT') {
-      throw new ForbiddenException('Only applicants can apply for jobs');
-    }
-
     const vacancy = await this.prisma.vacancy.findUnique({
       where: { id: createApplicationDto.vacancyId }
     });
@@ -61,8 +55,8 @@ export class ApplicationsService {
   async inviteCandidate(hrId: string, inviteDto: InviteCandidateDto) {
     const hr = await this.prisma.user.findUnique({ where: { id: hrId } });
 
-    if (hr?.role !== 'EMPLOYER') {
-      throw new ForbiddenException('Only employers can invite candidates');
+    if (!hr) {
+      throw new NotFoundException('Recruiter not found');
     }
 
     const vacancy = await this.prisma.vacancy.findUnique({

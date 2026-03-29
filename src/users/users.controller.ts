@@ -1,11 +1,14 @@
-import { Controller, Get, Body, Patch, Param, Query } from '@nestjs/common';
+import {Controller, Get, Body, Patch, Param, Query, UseGuards} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SearchUsersDto } from './dto/search-user.dto';
 import {EventPattern, Payload} from "@nestjs/microservices";
 import {Role} from "../../generated/prisma/enums";
+import {RolesGuard} from "../auth/guards/roles-guard";
+import {CurrentUser} from "../auth/decorators/current-user.decorator";
 
 @Controller('users')
+@UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -20,15 +23,12 @@ export class UsersController {
   }
 
   @Get('me')
-  findMe(@Query('userId') userId: string) {
+  findMe(@CurrentUser() userId: string) {
     return this.usersService.findOne(userId);
   }
 
   @Patch('me')
-  update(
-    @Query('userId') userId: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  update(@CurrentUser() userId: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(userId, updateUserDto);
   }
 

@@ -18,7 +18,6 @@ export class CompaniesService {
     const user = await this.prisma.user.findUnique({where: {id: userId}});
 
     if (!user) throw new NotFoundException('User not found');
-    if (user.role !== 'EMPLOYER') throw new ForbiddenException('Only employers can create companies');
     if (user.companyId) throw new BadRequestException('You are already attached to a company');
 
     const slug = this.generateSlug(createCompanyDto.name);
@@ -120,7 +119,7 @@ export class CompaniesService {
 
   async applyToCompany(companyId: string, userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (user?.role !== 'EMPLOYER') throw new ForbiddenException('Only employers can join companies');
+    if (!user) throw new NotFoundException('User not found');
     if (user.companyId) throw new BadRequestException('You are already in a company');
 
     return this.prisma.companyJoinRequest.create({

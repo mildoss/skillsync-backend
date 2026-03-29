@@ -1,53 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, UnauthorizedException } from '@nestjs/common';
+import {Controller, Get, Post, Body, Patch, Param, UseGuards} from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import {InviteCandidateDto} from "./dto/invite-candidate.dto";
+import {RolesGuard} from "../auth/guards/roles-guard";
+import {Roles} from "../auth/decorators/roles.decorator";
+import {Role} from "../../generated/prisma/enums";
+import {CurrentUser} from "../auth/decorators/current-user.decorator";
 
 @Controller('applications')
+@UseGuards(RolesGuard)
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
   @Post()
-  create(
-    @Query('userId') applicantId: string,
-    @Body() createApplicationDto: CreateApplicationDto
-  ) {
-    if (!applicantId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.APPLICANT)
+  create(@CurrentUser() applicantId: string, @Body() createApplicationDto: CreateApplicationDto) {
     return this.applicationsService.create(applicantId, createApplicationDto);
   }
 
   @Post('invite')
-  invite(
-    @Query('userId') hrId: string,
-    @Body() inviteDto: InviteCandidateDto
-  ) {
-    if (!hrId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  invite(@CurrentUser() hrId: string, @Body() inviteDto: InviteCandidateDto) {
     return this.applicationsService.inviteCandidate(hrId, inviteDto);
   }
 
   @Get('my')
-  findMyApplications(@Query('userId') applicantId: string) {
-    if (!applicantId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.APPLICANT)
+  findMyApplications(@CurrentUser() applicantId: string) {
     return this.applicationsService.findMyApplications(applicantId);
   }
 
   @Get('vacancy/:vacancyId')
-  findVacancyApplications(
-    @Param('vacancyId') vacancyId: string,
-    @Query('userId') hrId: string
-  ) {
-    if (!hrId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  findVacancyApplications(@Param('vacancyId') vacancyId: string, @CurrentUser() hrId: string) {
     return this.applicationsService.findVacancyApplications(vacancyId, hrId);
   }
 
   @Patch(':id/status')
+  @Roles(Role.EMPLOYER)
   updateStatus(
     @Param('id') id: string,
-    @Query('userId') hrId: string,
+    @CurrentUser() hrId: string,
     @Body() updateApplicationDto: UpdateApplicationDto
   ) {
-    if (!hrId) throw new UnauthorizedException('Missing userId');
     return this.applicationsService.updateStatus(id, hrId, updateApplicationDto);
   }
 }

@@ -1,18 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards
+} from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import {Role} from "../../generated/prisma/enums";
+import {RolesGuard} from "../auth/guards/roles-guard";
+import {Roles} from "../auth/decorators/roles.decorator";
+import {CurrentUser} from "../auth/decorators/current-user.decorator";
 
 @Controller('companies')
+@UseGuards(RolesGuard)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  create(
-    @Query('userId') userId: string,
-    @Body() createCompanyDto: CreateCompanyDto
-  ) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  create(@CurrentUser() userId: string, @Body() createCompanyDto: CreateCompanyDto) {
     return this.companiesService.create(userId, createCompanyDto);
   }
 
@@ -27,43 +39,36 @@ export class CompaniesController {
   }
 
   @Post(':id/join')
-  applyToCompany(@Param('id') companyId: string, @Query('userId') userId: string) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  applyToCompany(@Param('id') companyId: string, @CurrentUser() userId: string) {
     return this.companiesService.applyToCompany(companyId, userId);
   }
 
   @Get(':id/requests')
-  getRequests(@Param('id') companyId: string, @Query('userId') userId: string) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  getRequests(@Param('id') companyId: string, @CurrentUser() userId: string) {
     return this.companiesService.getJoinRequests(companyId, userId);
   }
 
   @Patch(':id/requests/:requestId')
+  @Roles(Role.EMPLOYER)
   handleRequest(
     @Param('requestId') requestId: string,
-    @Query('userId') userId: string,
+    @CurrentUser() userId: string,
     @Body('status') status: 'APPROVED' | 'REJECTED'
   ) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
     return this.companiesService.handleJoinRequest(requestId, userId, status);
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Query('userId') userId: string,
-    @Body() updateCompanyDto: UpdateCompanyDto
-  ) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  update(@Param('id') id: string, @CurrentUser() userId: string, @Body() updateCompanyDto: UpdateCompanyDto) {
     return this.companiesService.update(id, userId, updateCompanyDto);
   }
 
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Query('userId') userId: string
-  ) {
-    if (!userId) throw new UnauthorizedException('Missing userId');
+  @Roles(Role.EMPLOYER)
+  remove(@Param('id') id: string, @CurrentUser() userId: string) {
     return this.companiesService.remove(id, userId);
   }
 }

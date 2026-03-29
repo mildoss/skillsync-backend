@@ -1,20 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards
+} from '@nestjs/common';
 import { VacanciesService } from './vacancies.service';
 import { CreateVacancyDto } from './dto/create-vacancy.dto';
 import { UpdateVacancyDto } from './dto/update-vacancy.dto';
 import { SearchVacanciesDto } from './dto/search-vacancies.dto';
+import {Roles} from "../auth/decorators/roles.decorator";
+import {Role} from "../../generated/prisma/enums";
+import {CurrentUser} from "../auth/decorators/current-user.decorator";
+import {RolesGuard} from "../auth/guards/roles-guard";
 
 @Controller('vacancies')
+@UseGuards(RolesGuard)
 export class VacanciesController {
   constructor(private readonly vacanciesService: VacanciesService) {}
 
   @Post()
-  create(
-    @Query('userId') employerId: string,
-    @Body() createVacancyDto: CreateVacancyDto
-  ) {
-    if (!employerId) throw new UnauthorizedException('Missing employerId');
-
+  @Roles(Role.EMPLOYER)
+  create(@CurrentUser() employerId: string, @Body() createVacancyDto: CreateVacancyDto) {
     return this.vacanciesService.create(employerId, createVacancyDto);
   }
 
@@ -29,23 +40,14 @@ export class VacanciesController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Query('userId') employerId: string,
-    @Body() updateVacancyDto: UpdateVacancyDto
-  ) {
-    if (!employerId) throw new UnauthorizedException('Missing employerId');
-
+  @Roles(Role.EMPLOYER)
+  update(@Param('id') id: string, @CurrentUser() employerId: string, @Body() updateVacancyDto: UpdateVacancyDto) {
     return this.vacanciesService.update(id, employerId, updateVacancyDto);
   }
 
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Query('userId') employerId: string
-  ) {
-    if (!employerId) throw new UnauthorizedException('Missing employerId');
-
+  @Roles(Role.EMPLOYER)
+  remove(@Param('id') id: string, @CurrentUser() employerId: string) {
     return this.vacanciesService.remove(id, employerId);
   }
 }
