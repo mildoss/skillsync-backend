@@ -1,98 +1,85 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚀 SkillSync Core Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The core business logic microservice for the **SkillSync Job Board Platform**.
+Built with NestJS, this service handles user profiles, company management, job vacancies, applications, and acts as the central data source. It communicates with a Java API Gateway via HTTP and Kafka.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🛠️ Tech Stack
 
-## Description
+- **Framework:** [NestJS](https://nestjs.com/) (v11)
+- **Database & ORM:** PostgreSQL + [Prisma](https://www.prisma.io/) (v7)
+- **Message Broker:** [Kafka](https://kafka.apache.org/) (for asynchronous events)
+- **Validation:** `class-validator` & `class-transformer`
+- **Documentation:** Swagger (OpenAPI)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🏗️ Architecture & Authentication
 
-## Project setup
+This service is designed to run behind an **API Gateway**.
+It **does not** handle JWT verification directly. Instead, it trusts the API Gateway to authenticate users and pass the user context via HTTP Headers:
 
-```bash
-$ npm install
+- `x-user-id`: UUID of the authenticated user.
+- `x-user-role`: The global role of the user (e.g., `APPLICANT` or `EMPLOYER`).
+
+*Custom Decorators (`@CurrentUser`, `@Roles`) and Guards (`RolesGuard`) are used across controllers to enforce Role-Based Access Control (RBAC).*
+
+## 📦 Core Modules
+
+- **`Users`**: Applicant and recruiter profiles. Listens to Kafka `topic-registration` for new users.
+- **`Companies`**: Company CRUD, joining requests, and employer management.
+- **`Vacancies`**: Job postings with advanced filtering, pagination, and relation to skills/languages.
+- **`Applications`**: Inbound job applications, outbound recruiter invitations, and status tracking.
+- **`Dictionaries`**: Static catalogs (Skills, Languages, Categories).
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Node.js (v18+)
+- PostgreSQL database
+- Kafka broker (e.g., Aiven or local docker container)
+
+### 2. Environment Variables
+Create a `.env` file in the root directory based on `.env.example`:
+
+```env
+PORT=3000
+DATABASE_URL="postgresql://user:password@localhost:5432/skillsync?schema=public"
+
+# Kafka Configuration
+KAFKA_BROKER="your-kafka-broker-url:port"
+KAFKA_GROUP_ID="skillsync-nestjs-group"
 ```
 
-## Compile and run the project
+# Install dependencies
+npm install
 
-```bash
-# development
-$ npm run start
+# Generate Prisma Client
+npm run prisma:generate
 
-# watch mode
-$ npm run start:dev
+# Push schema to the database (if not using migrations yet)
+npm run prisma:push
 
-# production mode
-$ npm run start:prod
-```
+# Development mode
+npm run start:dev
 
-## Run tests
+# Production mode
+npm run build
+npm run start:prod
 
-```bash
-# unit tests
-$ npm run test
+📚 API Documentation (Swagger)
 
-# e2e tests
-$ npm run test:e2e
+Once the application is running, the interactive OpenAPI documentation is available at:
+👉 http://localhost:3000/api/docs
 
-# test coverage
-$ npm run test:cov
-```
+You can test endpoints directly from the browser. To emulate the API Gateway, simply provide the x-user-id and x-user-role headers in the Swagger UI.
+📜 Available Scripts
 
-## Deployment
+    npm run start:dev - Start application in watch mode.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+    npm run prisma:studio - Open Prisma Studio to view/edit database records graphically.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+    npm run prisma:generate - Re-generate Prisma Client after schema changes.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+    npm run prisma:push - Sync database schema with schema.prisma.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+    npm run seed - Populate the database with initial/mock data (skills, languages, etc.).
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+    npm run lint - Run ESLint.
