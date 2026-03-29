@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 import * as fs from 'fs';
+import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,6 +33,27 @@ async function bootstrap() {
       },
     },
   });
+
+  const config = new DocumentBuilder()
+    .setTitle('SkillSync API')
+    .setDescription('Documentation REST API for Job Board platform')
+    .setVersion('1.0')
+    .addGlobalParameters({
+      name: 'x-user-id',
+      in: 'header',
+      required: false,
+      description: 'User id',
+    })
+    .addGlobalParameters({
+      name: 'x-user-role',
+      in: 'header',
+      required: false,
+      description: 'User role: [APPLICANT] or [EMPLOYER]',
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3000);
