@@ -4,9 +4,10 @@ import { UsersModule } from './users/users.module';
 import { VacanciesModule } from './vacancies/vacancies.module';
 import { DictionariesModule } from './dictionaries/dictionaries.module';
 import { CompaniesModule } from './companies/companies.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
-  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule],
+  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule, ApplicationsModule],
   controllers: [],
   providers: [PrismaService],
 })

@@ -24,6 +24,7 @@ enum ApplicationStatus {
   REVIEWING
   ACCEPTED
   REJECTED
+  INVITED
 }
 
 enum EmploymentType {
