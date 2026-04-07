@@ -80,6 +80,14 @@ model Language {
   vacancies Vacancy[]
 }
 
+model Domain {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  vacancies Vacancy[]
+}
+
 model Company {
   id          String      @id @default(uuid())
   name        String      @unique
@@ -136,7 +144,6 @@ model Vacancy {
   currency    String      @default("USD")
   type        VacancyType @default(REMOTE)
   location    String?
-  domain      String?
   experience  Float?
   isActive    Boolean     @default(true)
   languages   Language[]
@@ -146,6 +153,8 @@ model Vacancy {
   category   Category? @relation(fields: [categoryId], references: [id])
   companyId  String
   company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  domainId   String?
+  domain     Domain?   @relation(fields: [domainId], references: [id])
 
   applications Application[]
 
@@ -198,5 +207,5 @@ model CompanyJoinRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, companyId]) // Чтобы нельзя было спамить заявками в одну компанию
+  @@unique([userId, companyId])
 }

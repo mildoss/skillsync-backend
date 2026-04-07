@@ -37,10 +37,10 @@ export class CreateVacancyDto {
   @IsString()
   location?: string;
 
-  @ApiPropertyOptional({ example: 'Fintech', description: 'Business domain' })
+  @ApiPropertyOptional({ example: 'UUID of the domain', description: 'Domain of the vacancy' })
   @IsOptional()
   @IsString()
-  domain?: string;
+  domainId?: string;
 
   @ApiPropertyOptional({ description: 'UUID of the job category' })
   @IsOptional()

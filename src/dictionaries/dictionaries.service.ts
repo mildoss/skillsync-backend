@@ -22,4 +22,10 @@ export class DictionariesService {
       orderBy: { name: 'asc' },
     });
   }
+
+  async getDomains() {
+    return this.prisma.domain.findMany({
+      orderBy: { name: 'asc' },
+    })
+  }
 }

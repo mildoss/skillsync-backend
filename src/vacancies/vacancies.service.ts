@@ -16,7 +16,7 @@ export class VacanciesService {
       throw new ForbiddenException('You must be attached to a company to create vacancies');
     }
 
-    const { skills, languages, ...restData } = createVacancyDto;
+    const { skills, languages, domainId, ...restData } = createVacancyDto;
 
     return this.prisma.vacancy.create({
       data: {
@@ -24,6 +24,7 @@ export class VacanciesService {
         companyId: hr.companyId,
         skills: skills ? { connect: skills.map((id) => ({ id })) } : undefined,
         languages: languages ? { connect: languages.map((id) => ({ id })) } : undefined,
+        domainId: domainId ?? undefined,
       }
     });
   }
@@ -46,7 +47,7 @@ export class VacanciesService {
     }
 
     if (categoryId) where.categoryId = categoryId;
-    if (domain) where.domain = {equals: domain, mode: 'insensitive'};
+    if (domain) where.domainId = domain;
     if (location) where.location = {contains: location, mode: 'insensitive'};
 
     if (experience !== undefined) {
@@ -132,7 +133,7 @@ export class VacanciesService {
       throw new ForbiddenException('You can only update vacancies of your company');
     }
 
-    const { skills, languages, ...restData } = updateVacancyDto;
+    const { skills, languages, domainId, ...restData } = updateVacancyDto;
 
     return this.prisma.vacancy.update({
       where: { id },
@@ -140,6 +141,7 @@ export class VacanciesService {
         ...restData,
         skills: skills ? { set: skills.map((skillId) => ({ id: skillId })) } : undefined,
         languages: languages ? { set: languages.map((langId) => ({ id: langId })) } : undefined,
+        domainId: domainId ?? undefined,
       },
     });
   }

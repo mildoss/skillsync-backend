@@ -27,4 +27,11 @@ export class DictionariesController {
   getLanguages() {
     return this.dictionariesService.getLanguages();
   }
+
+  @Get('domains')
+  @ApiOperation({ summary: 'Get a list of all domains' })
+  @ApiResponse({ status: 200, description: 'List of domains retrieved successfully.' })
+  getDomains() {
+    return this.dictionariesService.getDomains();
+  }
 }
