@@ -1,5 +1,7 @@
-import { IsString, IsOptional, IsArray, IsUrl } from 'class-validator';
+import {IsString, IsOptional, IsArray, IsUrl, IsNumber} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import {Type} from "class-transformer";
+import {EmploymentType, VacancyType} from "../../../generated/prisma/enums";
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'Benya Shaslycnikov', description: 'Full name of the user' })
@@ -10,7 +12,33 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'Passionate Backend Developer...', description: 'Short biography' })
   @IsOptional()
   @IsString()
-  bio?: string;
+  about?: string;
+
+  @ApiPropertyOptional({ example: 'Senior Backend Developer', description: 'Current position' })
+  @IsOptional()
+  @IsString()
+  position?: string;
+
+  @ApiPropertyOptional({ example: 'Odessa, Ukraine', description: 'Location' })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @ApiPropertyOptional({ example: 3.5, description: 'Years of experience' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  experience?: number;
+
+  @ApiPropertyOptional({ enum: VacancyType, isArray: true, description: 'Preferred work formats' })
+  @IsOptional()
+  @IsArray()
+  workFormats?: VacancyType[];
+
+  @ApiPropertyOptional({ enum: EmploymentType, isArray: true, description: 'Preferred employment types' })
+  @IsOptional()
+  @IsArray()
+  employmentTypes?: EmploymentType[];
 
   @ApiPropertyOptional({ type: [String], description: 'Array of Skill UUIDs' })
   @IsOptional()
