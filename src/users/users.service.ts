@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma.service';
 import { SearchUsersDto } from './dto/search-user.dto';
-import { Prisma, Role } from '../../generated/prisma/client';
+import {LocationType, Prisma, Role} from '../../generated/prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -60,7 +60,11 @@ export class UsersService {
     }
 
     if (location) {
-      where.location = { contains: location, mode: 'insensitive' };
+      const locations = location.split(',').map(l =>
+        l.trim().toUpperCase().replace(/\s+/g, '_') as LocationType
+      );
+
+      where.location = { in: locations };
     }
 
     if (experience !== undefined) {
@@ -133,12 +137,15 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.findOne(id);
-    const { skills, languages, ...restData } = updateUserDto;
+    const { skills, languages, location, ...restData } = updateUserDto;
 
     return this.prisma.user.update({
       where: { id },
       data: {
         ...restData,
+        location: location
+          ? (location.toUpperCase().replace(/\s+/g, '_') as LocationType)
+          : undefined,
         skills: skills ? { set: skills.map((skillId) => ({ id: skillId })) } : undefined,
         languages: languages ? { set: languages.map((langId) => ({ id: langId })) } : undefined,
       },

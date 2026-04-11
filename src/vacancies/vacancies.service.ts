@@ -3,7 +3,7 @@ import {CreateVacancyDto} from './dto/create-vacancy.dto';
 import {UpdateVacancyDto} from './dto/update-vacancy.dto';
 import {PrismaService} from "../prisma.service";
 import {SearchVacanciesDto} from "./dto/search-vacancies.dto";
-import {Prisma} from '../../generated/prisma/client';
+import {LocationType, Prisma} from '../../generated/prisma/client';
 
 @Injectable()
 export class VacanciesService {
@@ -16,12 +16,15 @@ export class VacanciesService {
       throw new ForbiddenException('You must be attached to a company to create vacancies');
     }
 
-    const { skills, languages, domainId, ...restData } = createVacancyDto;
+    const { skills, languages, domainId, location, ...restData } = createVacancyDto;
 
     return this.prisma.vacancy.create({
       data: {
         ...restData,
         companyId: hr.companyId,
+        location: location
+          ? (location.toUpperCase().replace(/\s+/g, '_') as LocationType)
+          : undefined,
         skills: skills ? { connect: skills.map((id) => ({ id })) } : undefined,
         languages: languages ? { connect: languages.map((id) => ({ id })) } : undefined,
         domainId: domainId ?? undefined,
@@ -48,7 +51,13 @@ export class VacanciesService {
 
     if (categoryId) where.categoryId = categoryId;
     if (domain) where.domainId = domain;
-    if (location) where.location = {contains: location, mode: 'insensitive'};
+    if (location) {
+      const locations = location.split(',').map(l =>
+        l.trim().toUpperCase().replace(/\s+/g, '_') as LocationType
+      );
+
+      where.location = { in: locations };
+    }
 
     if (experience !== undefined) {
       where.experience = { lte: experience };
@@ -133,12 +142,15 @@ export class VacanciesService {
       throw new ForbiddenException('You can only update vacancies of your company');
     }
 
-    const { skills, languages, domainId, ...restData } = updateVacancyDto;
+    const { skills, languages, domainId, location, ...restData } = updateVacancyDto;
 
     return this.prisma.vacancy.update({
       where: { id },
       data: {
         ...restData,
+        location: location
+          ? (location.toUpperCase().replace(/\s+/g, '_') as LocationType)
+          : undefined,
         skills: skills ? { set: skills.map((skillId) => ({ id: skillId })) } : undefined,
         languages: languages ? { set: languages.map((langId) => ({ id: langId })) } : undefined,
         domainId: domainId ?? undefined,

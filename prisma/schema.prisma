@@ -53,6 +53,16 @@ enum RequestStatus {
   REJECTED
 }
 
+enum LocationType {
+  ALL_WORLD
+  EUROPA
+  CIS
+  AMERICA
+  ASIA
+  AUSTRALIA
+  OTHER
+}
+
 model Category {
   id   String @id @default(uuid())
   name String @unique
@@ -112,7 +122,7 @@ model User {
   companyRole     CompanyRole?
   name            String
   position        String?
-  location        String?
+  location        LocationType?
   experience      Float?
   languages       Language[]
   skills          Skill[]
@@ -136,16 +146,16 @@ model User {
 }
 
 model Vacancy {
-  id          String      @id @default(uuid())
+  id          String        @id @default(uuid())
   title       String
-  description String      @db.Text
+  description String        @db.Text
   salaryMin   Int?
   salaryMax   Int?
-  currency    String      @default("USD")
-  type        VacancyType @default(REMOTE)
-  location    String?
+  currency    String        @default("USD")
+  type        VacancyType   @default(REMOTE)
+  location    LocationType?
   experience  Float?
-  isActive    Boolean     @default(true)
+  isActive    Boolean       @default(true)
   languages   Language[]
   skills      Skill[]
 
