@@ -26,9 +26,16 @@ export class SearchVacanciesDto {
 
   @ApiPropertyOptional({ description: 'Maximum years of experience required' })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  experience?: number;
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.split(',').map(Number);
+
+    if (Array.isArray(value)) return value.map(Number);
+
+    return [Number(value)];
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  experience?: number[];
 
   @ApiPropertyOptional({ enum: VacancyType, isArray: true, description: 'Filter by work formats (comma-separated)' })
   @IsOptional()

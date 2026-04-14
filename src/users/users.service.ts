@@ -67,8 +67,9 @@ export class UsersService {
       where.location = { in: locations };
     }
 
-    if (experience !== undefined) {
-      where.experience = { gte: experience };
+    if (experience && experience.length > 0) {
+      const minExp = Math.min(...experience);
+      where.experience = { gte: minExp };
     }
 
     if (skills && skills.length > 0) {
@@ -126,6 +127,11 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
+      include: {
+        category: true,
+        skills: true,
+        languages: true,
+      }
     });
 
     if (!user) {

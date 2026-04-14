@@ -42,33 +42,44 @@ export class VacanciesService {
     const skip = (page - 1) * limit;
     const where: Prisma.VacancyWhereInput = {isActive};
 
+    const andConditions: Prisma.VacancyWhereInput[] = [];
+
     if (search) {
-      where.OR = [
-        {title: {contains: search, mode: 'insensitive'}},
-        {description: {contains: search, mode: 'insensitive'}},
-      ];
+      andConditions.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     if (categoryId) where.categoryId = categoryId;
     if (domain) where.domainId = domain;
+
     if (location) {
       const locations = location.split(',').map(l =>
         l.trim().toUpperCase().replace(/\s+/g, '_') as LocationType
       );
-
       where.location = { in: locations };
     }
 
-    if (experience !== undefined) {
-      where.experience = { lte: experience };
+    if (experience && experience.length > 0) {
+      const maxExp = Math.max(...experience);
+      andConditions.push({
+        OR: [
+          { experience: { lte: maxExp } },
+          { experience: null }
+        ]
+      });
     }
 
     if (salaryMin !== undefined) {
-      where.OR = [
-        ...(where.OR || []),
-        {salaryMin: {gte: salaryMin}},
-        {salaryMax: {gte: salaryMin}}
-      ];
+      andConditions.push({
+        OR: [
+          { salaryMin: { gte: salaryMin } },
+          { salaryMax: { gte: salaryMin } },
+        ],
+      });
     }
 
     if (type && type.length > 0) {
@@ -84,8 +95,13 @@ export class VacanciesService {
     if (skills && skills.length > 0) {
       where.skills = { some: { id: { in: skills } } };
     }
+    
     if (languages && languages.length > 0) {
       where.languages = { some: { id: { in: languages } } };
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const [vacancies, total] = await Promise.all([
