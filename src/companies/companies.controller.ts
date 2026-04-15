@@ -17,6 +17,7 @@ import {RolesGuard} from "../auth/guards/roles-guard";
 import {Roles} from "../auth/decorators/roles.decorator";
 import {CurrentUser} from "../auth/decorators/current-user.decorator";
 import {ApiOperation, ApiParam, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {SearchCompaniesDto} from "./dto/search-companies.dto";
 
 @ApiTags('Companies')
 @Controller('companies')
@@ -35,10 +36,10 @@ export class CompaniesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get a list of all companies (with search)' })
+  @ApiOperation({ summary: 'Get a list of all companies with pagination' })
   @ApiResponse({ status: 200, description: 'List of companies successfully received.' })
-  findAll(@Query('search') search?: string) {
-    return this.companiesService.findAll(search);
+  findAll(@Query() query: SearchCompaniesDto) {
+    return this.companiesService.findAll(query);
   }
 
   @Get(':idOrSlug')

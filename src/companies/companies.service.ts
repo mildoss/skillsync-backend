@@ -2,6 +2,7 @@ import {BadRequestException, ForbiddenException, Injectable, NotFoundException} 
 import {CreateCompanyDto} from './dto/create-company.dto';
 import {UpdateCompanyDto} from './dto/update-company.dto';
 import {PrismaService} from "../prisma.service";
+import {SearchCompaniesDto} from "./dto/search-companies.dto";
 
 @Injectable()
 export class CompaniesService {
@@ -42,7 +43,10 @@ export class CompaniesService {
     })
   }
 
-  async findAll(search?: string) {
+  async findAll(query: SearchCompaniesDto) {
+    const { search, page = 1, limit = 12 } = query;
+    const skip = (page - 1) * limit;
+
     const where = search ? {
       OR: [
         { name: { contains: search, mode: 'insensitive' as const } },
@@ -50,15 +54,30 @@ export class CompaniesService {
       ]
     } : {};
 
-    return this.prisma.company.findMany({
-      where,
-      include: {
-        _count: {
-          select: { vacancies: true, employees: true },
+    const [companies, total] = await Promise.all([
+      this.prisma.company.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          _count: {
+            select: { vacancies: true, employees: true },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.company.count({ where }),
+    ]);
+
+    return {
+      data: companies,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    };
   }
 
   async findOne(idOrSlug: string) {
