@@ -91,7 +91,18 @@ export class CompaniesService {
       include: {
         vacancies: {
           where: { isActive: true },
-          include: { category: true, skills: true }
+          include: {
+            category: true,
+            skills: true,
+            languages: true,
+            company: {
+              select: {
+                name: true,
+                logoUrl: true,
+                companyType: true
+              }
+            }
+          }
         },
         employees: {
           select: { id: true, name: true, position: true, avatarUrl: true }
