@@ -59,6 +59,22 @@ export class CompaniesController {
     return this.companiesService.applyToCompany(companyId, userId);
   }
 
+  @Get('requests/me')
+  @Roles(Role.EMPLOYER)
+  @ApiOperation({ summary: 'Get all join requests sent by current user' })
+  @ApiResponse({ status: 200, description: 'List of sent requests retrieved.' })
+  getMyRequests(@CurrentUser() userId: string) {
+    return this.companiesService.getMyJoinRequests(userId);
+  }
+
+  @Delete('requests/:requestId')
+  @Roles(Role.EMPLOYER)
+  @ApiOperation({ summary: 'Cancel a pending join request' })
+  @ApiResponse({ status: 200, description: 'Request cancelled successfully.' })
+  cancelRequest(@Param('requestId') requestId: string, @CurrentUser() userId: string) {
+    return this.companiesService.cancelJoinRequest(requestId, userId);
+  }
+
   @Get(':id/requests')
   @Roles(Role.EMPLOYER)
   @ApiOperation({ summary: 'Get all pending join requests for a company' })

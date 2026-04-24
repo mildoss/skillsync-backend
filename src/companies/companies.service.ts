@@ -1,4 +1,10 @@
-import {BadRequestException, ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
 import {CreateCompanyDto} from './dto/create-company.dto';
 import {UpdateCompanyDto} from './dto/update-company.dto';
 import {PrismaService} from "../prisma.service";
@@ -152,11 +158,45 @@ export class CompaniesService {
     if (!user) throw new NotFoundException('User not found');
     if (user.companyId) throw new BadRequestException('You are already in a company');
 
+    const existingRequest = await this.prisma.companyJoinRequest.findUnique({
+      where: { userId_companyId: { userId, companyId } }
+    });
+
+    if (existingRequest) {
+      if (existingRequest.status === 'PENDING') {
+        throw new ConflictException('Join request already sent');
+      }
+      throw new BadRequestException(`Your previous request was ${existingRequest.status}`);
+    }
+
     return this.prisma.companyJoinRequest.create({
       data: {
         companyId,
         userId,
       }
+    });
+  }
+
+  async getMyJoinRequests(userId: string) {
+    return this.prisma.companyJoinRequest.findMany({
+      where: { userId },
+      include: {
+        company: { select: { id: true, name: true, logoUrl: true, companyType: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async cancelJoinRequest(requestId: string, userId: string) {
+    const request = await this.prisma.companyJoinRequest.findUnique({ where: { id: requestId } });
+
+    if (!request) throw new NotFoundException('Request not found');
+    if (request.userId !== userId) {
+      throw new ForbiddenException('You can only cancel your own requests');
+    }
+
+    return this.prisma.companyJoinRequest.delete({
+      where: { id: requestId }
     });
   }
 
