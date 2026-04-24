@@ -46,6 +46,7 @@ export class UsersService {
 
     const where: Prisma.UserWhereInput = {
       role: Role.APPLICANT,
+      isActive: true,
     };
 
     if (search) {

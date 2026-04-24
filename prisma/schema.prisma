@@ -131,6 +131,7 @@ model User {
   about           String?          @db.Text
   avatarUrl       String?
   cvUrl           String?
+  isActive        Boolean          @default(false)
 
   categoryId   String?
   category     Category?            @relation(fields: [categoryId], references: [id])
