@@ -132,6 +132,10 @@ export class UsersService {
         category: true,
         skills: true,
         languages: true,
+        joinRequests: {
+          where: { status: 'PENDING' },
+          select: { companyId: true }
+        }
       }
     });
 
@@ -139,7 +143,16 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    return user;
+    const { joinRequests, ...restData } = user;
+
+    if (user.role === Role.EMPLOYER) {
+      return {
+        ...restData,
+        pendingCompanyIds: joinRequests.map(req => req.companyId),
+      };
+    }
+
+    return restData;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
