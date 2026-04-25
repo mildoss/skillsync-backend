@@ -97,6 +97,19 @@ export class CompaniesController {
     return this.companiesService.handleJoinRequest(requestId, userId, status);
   }
 
+  @Delete(':id/employees/:employeeId')
+  @Roles(Role.EMPLOYER)
+  @ApiOperation({ summary: 'Remove an employee from the company (OWNER only)' })
+  @ApiResponse({ status: 200, description: 'Employee removed successfully.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  removeEmployee(
+    @Param('id') companyId: string,
+    @Param('employeeId') employeeId: string,
+    @CurrentUser() userId: string
+  ) {
+    return this.companiesService.removeEmployee(companyId, employeeId, userId);
+  }
+
   @Patch(':id')
   @Roles(Role.EMPLOYER)
   @ApiOperation({ summary: 'Update company details (OWNER only)' })

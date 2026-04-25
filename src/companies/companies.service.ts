@@ -177,6 +177,31 @@ export class CompaniesService {
     });
   }
 
+  async removeEmployee(companyId: string, employeeId: string, userId: string) {
+    const owner = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (owner?.companyId !== companyId || owner?.companyRole !== 'OWNER') {
+      throw new ForbiddenException('Only company owners can manage employees');
+    }
+
+    if (userId === employeeId) {
+      throw new BadRequestException('You cannot remove yourself from the company');
+    }
+
+    const employee = await this.prisma.user.findUnique({ where: { id: employeeId } });
+    if (employee?.companyId !== companyId) {
+      throw new NotFoundException('Employee not found in this company');
+    }
+
+    return this.prisma.user.update({
+      where: { id: employeeId },
+      data: {
+        companyId: null,
+        companyRole: null,
+      }
+    })
+  }
+
   async getMyJoinRequests(userId: string) {
     return this.prisma.companyJoinRequest.findMany({
       where: { userId },
