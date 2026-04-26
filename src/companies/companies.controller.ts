@@ -127,4 +127,11 @@ export class CompaniesController {
   remove(@Param('id') id: string, @CurrentUser() userId: string) {
     return this.companiesService.remove(id, userId);
   }
+
+  @Post('leave')
+  @Roles(Role.EMPLOYER)
+  @ApiOperation({ summary: 'Leave current company (Recruiter only)' })
+  leave(@CurrentUser() userId: string) {
+    return this.companiesService.leaveCompany(userId);
+  }
 }

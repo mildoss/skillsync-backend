@@ -153,6 +153,30 @@ export class CompaniesService {
     });
   }
 
+  async leaveCompany(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.companyId) {
+      throw new BadRequestException('You are not attached to any company');
+    }
+
+    if (user.companyRole === 'OWNER') {
+      throw new BadRequestException('Owner cannot leave the company. You must delete the company first.');
+    }
+
+    return this.prisma.$transaction(async (prisma) => {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { companyId: null, companyRole: null }
+      });
+
+      await prisma.companyJoinRequest.deleteMany({
+        where: { userId, companyId: user.companyId! }
+      });
+
+      return { success: true };
+    });
+  }
+
   async applyToCompany(companyId: string, userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
