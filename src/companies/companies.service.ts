@@ -193,13 +193,24 @@ export class CompaniesService {
       throw new NotFoundException('Employee not found in this company');
     }
 
-    return this.prisma.user.update({
-      where: { id: employeeId },
-      data: {
-        companyId: null,
-        companyRole: null,
-      }
-    })
+    return this.prisma.$transaction(async (prisma) => {
+      const updatedUser = await prisma.user.update({
+        where: { id: employeeId },
+        data: {
+          companyId: null,
+          companyRole: null,
+        }
+      });
+
+      await prisma.companyJoinRequest.deleteMany({
+        where: {
+          userId: employeeId,
+          companyId: companyId
+        }
+      });
+
+      return updatedUser;
+    });
   }
 
   async getMyJoinRequests(userId: string) {
@@ -260,6 +271,13 @@ export class CompaniesService {
           data: {
             companyId: request.companyId,
             companyRole: 'RECRUITER'
+          }
+        });
+
+        await prisma.companyJoinRequest.deleteMany({
+          where: {
+            userId: request.userId,
+            id: { not: requestId }
           }
         });
       }
