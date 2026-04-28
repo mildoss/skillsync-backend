@@ -41,6 +41,14 @@ export class VacanciesController {
     return this.vacanciesService.findAll(query);
   }
 
+  @Get('my')
+  @Roles(Role.EMPLOYER)
+  @ApiOperation({ summary: 'Get all vacancies of the current user`s company' })
+  @ApiResponse({ status: 200, description: 'List of vacancies retrieved successfully.' })
+  findMyVacancies(@CurrentUser() employerId: string) {
+    return this.vacanciesService.findMyVacancies(employerId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific vacancy by ID' })
   @ApiResponse({ status: 200, description: 'Vacancy details retrieved successfully.' })
