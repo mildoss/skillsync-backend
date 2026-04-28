@@ -151,26 +151,19 @@ export class VacanciesService {
   }
 
   async findMyVacancies(employerId: string) {
-    console.log('SERVICE employerId:', employerId);
+    const hr = await this.prisma.user.findUnique({ where: { id: employerId } });
+    if (!hr?.companyId) throw new ForbiddenException('No company attached');
 
-    const hr = await this.prisma.user.findUnique({
-      where: { id: employerId },
-    });
-
-    console.log('FOUND USER:', hr);
-
-    if (!hr?.companyId) {
-      console.log('NO COMPANY ID');
-      throw new ForbiddenException('No company attached');
-    }
-
-    const vacancies = await this.prisma.vacancy.findMany({
+    return this.prisma.vacancy.findMany({
       where: { companyId: hr.companyId },
+      include: {
+        category: true,
+        company: { select: { id: true, name: true, logoUrl: true, companyType: true } },
+        skills: true,
+        languages: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
-
-    console.log('VACANCIES:', vacancies);
-
-    return vacancies;
   }
 
   async update(id: string, employerId: string, updateVacancyDto: UpdateVacancyDto) {
