@@ -1,4 +1,4 @@
-import {IsString, IsOptional, IsArray, IsUrl, IsNumber} from 'class-validator';
+import {IsString, IsOptional, IsArray, IsUrl, IsNumber, IsBoolean} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {Type} from "class-transformer";
 import {EmploymentType, VacancyType} from "../../../generated/prisma/enums";
@@ -66,4 +66,9 @@ export class UpdateUserDto {
   @IsArray()
   @IsString({ each: true })
   languages?: string[];
+
+  @ApiPropertyOptional({ description: 'Is profile active and visible to recruiters' })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
