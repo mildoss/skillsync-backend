@@ -48,6 +48,21 @@ export class ApplicationsService {
         });
       }
 
+      const hrUsers = await prisma.user.findMany({
+        where: { companyId: vacancy.companyId }
+      });
+
+      if (hrUsers.length > 0) {
+        await prisma.notification.createMany({
+          data: hrUsers.map(hr => ({
+            userId: hr.id,
+            title: 'New Application',
+            message: `A candidate has applied for ${vacancy.title}`,
+            link: `/my-vacancies/${vacancy.id}/applications`,
+          }))
+        });
+      }
+
       return application;
     });
   }
@@ -94,6 +109,15 @@ export class ApplicationsService {
           text: inviteDto.message,
           applicationId: application.id,
           senderId: hrId,
+        }
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: inviteDto.applicantId,
+          title: 'New Interview Invitation',
+          message: `You have been invited to apply for ${vacancy.title} by ${hr.name}`,
+          link: `/applications`,
         }
       });
 
@@ -147,9 +171,20 @@ export class ApplicationsService {
       throw new ForbiddenException('You can only manage applications of your company');
     }
 
-    return this.prisma.application.update({
+    const updatedApp = await this.prisma.application.update({
       where: { id },
       data: { status: updateDto.status }
     });
+
+    await this.prisma.notification.create({
+      data: {
+        userId: application.applicantId,
+        title: 'Application Status Updated',
+        message: `Your application for ${application.vacancy.title} is now ${updateDto.status}`,
+        link: `/applications`,
+      }
+    });
+
+    return updatedApp;
   }
 }
