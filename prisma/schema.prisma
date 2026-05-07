@@ -132,6 +132,7 @@ model User {
   avatarUrl       String?
   cvUrl           String?
   isActive        Boolean          @default(false)
+  aiCredits       Int              @default(5)
 
   categoryId   String?
   category     Category?            @relation(fields: [categoryId], references: [id])
