@@ -8,9 +8,10 @@ import { ApplicationsModule } from './applications/applications.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import {APP_GUARD} from "@nestjs/core";
 import {GatewaySecretGuard} from "./auth/guards/gateway-secret.guard";
+import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule, ApplicationsModule, NotificationsModule],
+  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule, ApplicationsModule, NotificationsModule, AiModule],
   controllers: [],
   providers: [PrismaService, {
     provide: APP_GUARD,
