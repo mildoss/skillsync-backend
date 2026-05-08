@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional } from 'class-validator';
+import {IsString, IsArray, IsOptional, ArrayMinSize} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GenerateCoverLetterDto {
@@ -24,4 +24,18 @@ export class GenerateCoverLetterDto {
   @IsOptional()
   @IsString()
   candidateExperience?: string;
+}
+
+export class GenerateMatchingDto extends GenerateCoverLetterDto {}
+
+export class GenerateVacancyDto {
+  @ApiProperty({ example: 'Senior Node.js Backend Engineer', description: 'The job title to generate description for' })
+  @IsString()
+  jobTitle: string;
+
+  @ApiProperty({ example: ['NestJS', 'Kafka', 'Microservices', 'Docker'], description: 'Key requirements and skills' })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  keywords: string[];
 }

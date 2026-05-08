@@ -1,7 +1,7 @@
 import {BadRequestException, Injectable, InternalServerErrorException} from '@nestjs/common';
 import {HttpService} from '@nestjs/axios';
 import {PrismaService} from '../prisma.service';
-import {GenerateCoverLetterDto} from './dto/generate.dto';
+import {GenerateCoverLetterDto, GenerateMatchingDto, GenerateVacancyDto} from './dto/generate.dto';
 import {firstValueFrom} from 'rxjs';
 
 @Injectable()
@@ -53,6 +53,41 @@ export class AiService {
     } catch (error) {
       console.error('AI Service Error:', error?.response?.data || error.message);
       throw new InternalServerErrorException('AI Service is currently unavailable');
+    }
+  }
+
+  async generateVacancyDescription(userId: string, dto: GenerateVacancyDto) {
+    await this.checkCredits(userId);
+    try {
+      const aiResponse = await firstValueFrom(
+        this.httpService.post(`${process.env.AI_SERVICE_URL}/vacancy`, dto, {
+          headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
+        }),
+      );
+      const updatedUser = await this.deductCredit(userId);
+      return { text: aiResponse.data.text, remainingCredits: updatedUser.aiCredits };
+    } catch (error) {
+      throw new InternalServerErrorException('AI Service unavailable');
+    }
+  }
+
+  async getMatchingScore(userId: string, dto: GenerateMatchingDto) {
+    await this.checkCredits(userId);
+    try {
+      const aiResponse = await firstValueFrom(
+        this.httpService.post(`${process.env.AI_SERVICE_URL}/match`, dto, {
+          headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
+        }),
+      );
+      const updatedUser = await this.deductCredit(userId);
+
+      return {
+        ...aiResponse.data,
+        remainingCredits: updatedUser.aiCredits,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('AI Service unavailable');
     }
   }
 }
