@@ -47,7 +47,12 @@ export class AiService {
       const text = aiResponse.data.text;
 
       await this.prisma.aiGeneration.create({
-        data: { userId, type: AiGenerationType.COVER_LETTER, content: text },
+        data: {
+          userId,
+          type: AiGenerationType.COVER_LETTER,
+          content: text,
+          vacancyId: dto.vacancyId
+        },
       });
 
       const updatedUser = await this.deductCredit(userId);
@@ -113,9 +118,9 @@ export class AiService {
     }
   }
 
-  async getLatestDraft(userId: string, type: AiGenerationType) {
+  async getLatestDraft(userId: string, type: AiGenerationType, vacancyId?: string) {
     const draft = await this.prisma.aiGeneration.findFirst({
-      where: { userId, type },
+      where: { userId, type, vacancyId: vacancyId || undefined },
       orderBy: { createdAt: 'desc' },
     });
 
