@@ -3,6 +3,7 @@ import {HttpService} from '@nestjs/axios';
 import {PrismaService} from '../prisma.service';
 import {GenerateCoverLetterDto, GenerateMatchingDto, GenerateVacancyDto} from './dto/generate.dto';
 import {firstValueFrom} from 'rxjs';
+import {AiGenerationType} from "../../generated/prisma/enums";
 
 @Injectable()
 export class AiService {
@@ -28,7 +29,7 @@ export class AiService {
   }
 
   async generateCoverLetter(userId: string, dto: GenerateCoverLetterDto) {
-    const user = await this.checkCredits(userId);
+    await this.checkCredits(userId);
 
     try {
       const aiResponse = await firstValueFrom(
@@ -42,6 +43,12 @@ export class AiService {
           },
         ),
       );
+
+      const text = aiResponse.data.text;
+
+      await this.prisma.aiGeneration.create({
+        data: { userId, type: AiGenerationType.COVER_LETTER, content: text },
+      });
 
       const updatedUser = await this.deductCredit(userId);
 
@@ -64,7 +71,15 @@ export class AiService {
           headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
         }),
       );
+
+      const text = aiResponse.data.text;
+
+      await this.prisma.aiGeneration.create({
+        data: { userId, type: AiGenerationType.VACANCY, content: text },
+      });
+
       const updatedUser = await this.deductCredit(userId);
+
       return { text: aiResponse.data.text, remainingCredits: updatedUser.aiCredits };
     } catch (error) {
       throw new InternalServerErrorException('AI Service unavailable');
@@ -79,6 +94,13 @@ export class AiService {
           headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
         }),
       );
+
+      const content = JSON.stringify(aiResponse.data);
+
+      await this.prisma.aiGeneration.create({
+        data: { userId, type: AiGenerationType.MATCHING, content },
+      });
+
       const updatedUser = await this.deductCredit(userId);
 
       return {
@@ -89,5 +111,20 @@ export class AiService {
       console.error(error);
       throw new InternalServerErrorException('AI Service unavailable');
     }
+  }
+
+  async getLatestDraft(userId: string, type: AiGenerationType) {
+    const draft = await this.prisma.aiGeneration.findFirst({
+      where: { userId, type },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!draft) return null;
+
+    if (type === AiGenerationType.MATCHING) {
+      return { id: draft.id, type: draft.type, data: JSON.parse(draft.content), createdAt: draft.createdAt };
+    }
+
+    return { id: draft.id, type: draft.type, text: draft.content, createdAt: draft.createdAt };
   }
 }

@@ -1,11 +1,11 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {Controller, Post, Body, UseGuards, Get, Query} from '@nestjs/common';
+import {ApiTags, ApiOperation, ApiResponse, ApiQuery} from '@nestjs/swagger';
 import { AiService } from './ai.service';
 import {GenerateCoverLetterDto, GenerateMatchingDto, GenerateVacancyDto} from './dto/generate.dto';
 import { RolesGuard } from '../auth/guards/roles-guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from "../../generated/prisma/enums";
+import {AiGenerationType, Role} from "../../generated/prisma/enums";
 
 @ApiTags('AI Generation')
 @Controller('ai')
@@ -50,5 +50,16 @@ export class AiController {
     @Body() dto: GenerateMatchingDto,
   ) {
     return this.aiService.getMatchingScore(userId, dto);
+  }
+
+  @Get('draft')
+  @Roles(Role.APPLICANT, Role.EMPLOYER)
+  @ApiOperation({ summary: 'Get the latest AI generation draft' })
+  @ApiQuery({ name: 'type', enum: AiGenerationType })
+  getLatestDraft(
+    @CurrentUser() userId: string,
+    @Query('type') type: AiGenerationType,
+  ) {
+    return this.aiService.getLatestDraft(userId, type);
   }
 }
