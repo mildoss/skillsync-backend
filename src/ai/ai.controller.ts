@@ -61,6 +61,6 @@ export class AiController {
     @Query('type') type: AiGenerationType,
     @Query('vacancyId') vacancyId?: string,
   ) {
-    return this.aiService.getLatestDraft(userId, type);
+    return this.aiService.getLatestDraft(userId, type, vacancyId);
   }
 }

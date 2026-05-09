@@ -72,7 +72,7 @@ export class AiService {
     await this.checkCredits(userId);
     try {
       const aiResponse = await firstValueFrom(
-        this.httpService.post(`${process.env.AI_SERVICE_URL}/vacancy`, dto, {
+        this.httpService.post(`${process.env.AI_SERVICE_URL}/generate/vacancy`, dto, {
           headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
         }),
       );
@@ -95,7 +95,7 @@ export class AiService {
     await this.checkCredits(userId);
     try {
       const aiResponse = await firstValueFrom(
-        this.httpService.post(`${process.env.AI_SERVICE_URL}/match`, dto, {
+        this.httpService.post(`${process.env.AI_SERVICE_URL}/generate/match`, dto, {
           headers: { 'x-gateway-secret': process.env.GATEWAY_SECRET },
         }),
       );
