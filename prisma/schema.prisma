@@ -63,6 +63,12 @@ enum LocationType {
   OTHER
 }
 
+enum AiGenerationType {
+  COVER_LETTER
+  VACANCY
+  MATCHING
+}
+
 model Category {
   id   String @id @default(uuid())
   name String @unique
@@ -143,6 +149,7 @@ model User {
   applications  Application[]  @relation("ApplicantApplications")
   messages      Message[]      @relation("UserMessages")
   notifications Notification[]
+  aiGenerations AiGeneration[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -233,4 +240,17 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiGeneration {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    AiGenerationType
+  content String           @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
