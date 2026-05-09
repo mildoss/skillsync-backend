@@ -247,8 +247,9 @@ model AiGeneration {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type    AiGenerationType
-  content String           @db.Text
+  type      AiGenerationType
+  content   String           @db.Text
+  vacancyId String?
 
   createdAt DateTime @default(now())
 
