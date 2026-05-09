@@ -10,6 +10,11 @@ export class GenerateCoverLetterDto {
   @IsString()
   vacancyDescription: string;
 
+  @ApiPropertyOptional({ description: 'Vacancy id' })
+  @IsOptional()
+  @IsString()
+  vacancyId: string;
+
   @ApiPropertyOptional({ example: 'I am a fast learner and love coding.', description: 'Candidate bio or motivation' })
   @IsOptional()
   @IsString()

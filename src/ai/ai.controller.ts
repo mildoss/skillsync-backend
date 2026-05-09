@@ -59,6 +59,7 @@ export class AiController {
   getLatestDraft(
     @CurrentUser() userId: string,
     @Query('type') type: AiGenerationType,
+    @Query('vacancyId') vacancyId?: string,
   ) {
     return this.aiService.getLatestDraft(userId, type);
   }
