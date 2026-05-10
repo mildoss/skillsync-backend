@@ -31,7 +31,10 @@ export class GenerateCoverLetterDto {
   candidateExperience?: string;
 }
 
-export class GenerateMatchingDto extends GenerateCoverLetterDto {}
+export class GenerateMatchingDto extends GenerateCoverLetterDto {
+  @IsString()
+  applicationId: string; 
+}
 
 export class GenerateVacancyDto {
   @ApiProperty({ example: 'Senior Node.js Backend Engineer', description: 'The job title to generate description for' })

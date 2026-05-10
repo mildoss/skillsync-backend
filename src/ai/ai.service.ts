@@ -103,7 +103,7 @@ export class AiService {
       const content = JSON.stringify(aiResponse.data);
 
       await this.prisma.aiGeneration.create({
-        data: { userId, type: AiGenerationType.MATCHING, content },
+        data: { userId, type: AiGenerationType.MATCHING, content, vacancyId: dto.applicationId },
       });
 
       const updatedUser = await this.deductCredit(userId);
