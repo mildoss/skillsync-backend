@@ -69,6 +69,12 @@ enum AiGenerationType {
   MATCHING
 }
 
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model Category {
   id   String @id @default(uuid())
   name String @unique
@@ -150,6 +156,7 @@ model User {
   messages      Message[]      @relation("UserMessages")
   notifications Notification[]
   aiGenerations AiGeneration[]
+  transactions  Transaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -252,6 +259,23 @@ model AiGeneration {
   vacancyId String?
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  stripeSessionId String            @unique
+  amountTotal     Int
+  currency        String            @default("USD")
+  creditsAdded    Int
+  status          TransactionStatus @default(COMPLETED)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
