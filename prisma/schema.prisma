@@ -218,6 +218,7 @@ model Message {
   senderId String
   sender   User   @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
