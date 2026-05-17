@@ -95,7 +95,7 @@ export class ChatsService {
   }
 
   async saveMessage(applicationId: string, senderId: string, text: string) {
-    return this.prisma.message.create({
+    const message = await this.prisma.message.create({
       data: {
         text,
         applicationId,
@@ -105,6 +105,10 @@ export class ChatsService {
         sender: { select: { id: true, name: true, avatarUrl: true } }
       }
     });
+
+    await this.updateApplicationTimestamp(applicationId);
+
+    return message;
   }
 
   async markAsRead(applicationId: string, userId: string, messageIds: string[]) {
@@ -119,4 +123,33 @@ export class ChatsService {
     });
   }
 
+  async userCanAccessChat(userId: string, applicationId: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        vacancy: {
+          select: {
+            companyId: true,
+            company: {
+              select: { employees: { where: { id: userId } } }
+            }
+          }
+        }
+      }
+    });
+
+    if (!application) return false;
+
+    const isApplicant = application.applicantId === userId;
+    const isHr = application.vacancy.company.employees.length > 0;
+
+    return isApplicant || isHr;
+  }
+
+  async updateApplicationTimestamp(applicationId: string) {
+    await this.prisma.application.update({
+      where: { id: applicationId },
+      data: { updatedAt: new Date() }
+    });
+  }
 }
