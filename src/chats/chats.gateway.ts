@@ -13,6 +13,7 @@ import { ChatsService } from './chats.service';
 @WebSocketGateway({
   cors: { origin: '*' },
   namespace: '/chats',
+  transports: ['websocket']
 })
 export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
