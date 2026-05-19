@@ -9,6 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatsService } from './chats.service';
+import { PrismaService } from "../prisma.service";
+import { WsJwtService } from "../auth/ws-jwt.service";
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -19,18 +21,37 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(private chatsService: ChatsService) {}
+  constructor(
+    private chatsService: ChatsService,
+    private prisma: PrismaService,
+    private wsJwtService: WsJwtService,
+    ) {}
 
-  handleConnection(client: Socket) {
-    const userId = client.handshake.headers['x-user-id'] as string;
-    const gatewaySecret = client.handshake.headers['x-gateway-secret'] as string;
+  async handleConnection(client: Socket) {
+    const { token } = client.handshake.auth;
 
-    if (!userId || gatewaySecret !== process.env.GATEWAY_SECRET) {
+    if (!token) {
       client.disconnect(true);
       return;
     }
 
-    client.data.userId = userId;
+    try {
+      const decoded = await this.wsJwtService.verifyToken(token);
+      const userId = String(decoded.userId);
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        client.disconnect(true);
+        return;
+      }
+
+      client.data.userId = userId;
+    } catch {
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(_client: Socket) {}
