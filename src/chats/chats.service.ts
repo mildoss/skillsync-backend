@@ -21,7 +21,7 @@ export class ChatsService {
           select: { id: true, name: true, avatarUrl: true }
         },
         messages: {
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: 'desc' },
           take: 1,
         },
 
@@ -36,7 +36,7 @@ export class ChatsService {
           }
         }
       },
-      orderBy: { updatedAt: 'asc' }
+      orderBy: { updatedAt: 'desc' }
     });
   }
 
