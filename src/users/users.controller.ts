@@ -32,7 +32,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Profile details retrieved successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Missing x-user-id header.' })
   findMe(@CurrentUser() userId: string) {
-    return this.usersService.findOne(userId);
+    return this.usersService.findMe(userId);
   }
 
   @Patch('me')

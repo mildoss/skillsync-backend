@@ -166,6 +166,36 @@ export class UsersService {
     return restData;
   }
 
+  async findMe(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        skills: true,
+        languages: true,
+        joinRequests: {
+          where: { status: 'PENDING' },
+          select: { companyId: true }
+        }
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    const { joinRequests, ...restData } = user;
+
+    if (user.role === Role.EMPLOYER) {
+      return {
+        ...restData,
+        pendingCompanyIds: joinRequests.map(req => req.companyId),
+      };
+    }
+
+    return restData;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.findOne(id);
     const { skills, languages, location, ...restData } = updateUserDto;
