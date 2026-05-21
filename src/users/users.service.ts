@@ -128,7 +128,18 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        position: true,
+        about: true,
+        avatarUrl: true,
+        location: true,
+        experience: true,
+        employmentTypes: true,
+        workFormats: true,
+        cvUrl: true,
+        role: true,
         category: true,
         skills: true,
         languages: true,
