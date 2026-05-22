@@ -48,13 +48,13 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg', description: 'Link to profile avatar' })
   @IsOptional()
-  @IsUrl()
-  avatarUrl?: string;
+  @IsUrl({}, { message: 'Avatar URL must be a valid URL' })
+  avatarUrl?: string | null;
 
   @ApiPropertyOptional({ example: 'https://example.com/resume.pdf', description: 'Link to CV/Resume' })
   @IsOptional()
-  @IsUrl()
-  cvUrl?: string;
+  @IsUrl({}, { message: 'CV URL must be a valid URL' })
+  cvUrl?: string | null;
 
   @ApiPropertyOptional({ description: 'UUID of the preferred job category' })
   @IsOptional()

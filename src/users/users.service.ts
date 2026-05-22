@@ -3,10 +3,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma.service';
 import { SearchUsersDto } from './dto/search-user.dto';
 import {LocationType, Prisma, Role} from '../../generated/prisma/client';
+import {MediaService} from "../media/media.service";
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private media: MediaService,
+  ) {}
 
   async createUser(payload: { userId: number, email: string, username: string, role: Role }) {
     const { userId, email, username, role } = payload;
@@ -198,12 +202,24 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.findOne(id);
-    const { skills, languages, location, ...restData } = updateUserDto;
+    const { skills, languages, location, avatarUrl, ...restData } = updateUserDto;
+
+    if (avatarUrl === null) {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: { avatarUrl: true },
+      });
+
+      if (user?.avatarUrl) {
+        await this.media.deleteFileByUrl(user.avatarUrl);
+      }
+    }
 
     return this.prisma.user.update({
       where: { id },
       data: {
         ...restData,
+        avatarUrl: avatarUrl === null ? null : avatarUrl,
         location: location
           ? (location.toUpperCase().replace(/\s+/g, '_') as LocationType)
           : undefined,
