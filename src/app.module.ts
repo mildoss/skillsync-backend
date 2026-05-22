@@ -11,9 +11,10 @@ import {GatewaySecretGuard} from "./auth/guards/gateway-secret.guard";
 import { AiModule } from './ai/ai.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ChatsModule } from './chats/chats.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
-  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule, ApplicationsModule, NotificationsModule, AiModule, PaymentsModule, ChatsModule],
+  imports: [UsersModule, VacanciesModule, DictionariesModule, CompaniesModule, ApplicationsModule, NotificationsModule, AiModule, PaymentsModule, ChatsModule, MediaModule],
   controllers: [],
   providers: [PrismaService, {
     provide: APP_GUARD,
