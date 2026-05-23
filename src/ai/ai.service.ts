@@ -103,7 +103,7 @@ export class AiService {
       const content = JSON.stringify(aiResponse.data);
 
       await this.prisma.aiGeneration.create({
-        data: { userId, type: AiGenerationType.MATCHING, content, vacancyId: dto.applicationId },
+        data: { userId, type: AiGenerationType.MATCHING, content, vacancyId: dto.vacancyId, applicationId: dto.applicationId },
       });
 
       const updatedUser = await this.deductCredit(userId);
@@ -118,9 +118,19 @@ export class AiService {
     }
   }
 
-  async getLatestDraft(userId: string, type: AiGenerationType, vacancyId?: string) {
+  async getLatestDraft(userId: string, type: AiGenerationType, targetId?: string) {
+    const whereCondition: any = { userId, type };
+
+    if (targetId) {
+      if (type === AiGenerationType.MATCHING) {
+        whereCondition.applicationId = targetId;
+      } else {
+        whereCondition.vacancyId = targetId; 
+      }
+    }
+
     const draft = await this.prisma.aiGeneration.findFirst({
-      where: { userId, type, vacancyId: vacancyId || undefined },
+      where: whereCondition,
       orderBy: { createdAt: 'desc' },
     });
 
