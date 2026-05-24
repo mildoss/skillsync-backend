@@ -9,10 +9,14 @@ import {CreateCompanyDto} from './dto/create-company.dto';
 import {UpdateCompanyDto} from './dto/update-company.dto';
 import {PrismaService} from "../prisma.service";
 import {SearchCompaniesDto} from "./dto/search-companies.dto";
+import {MediaService} from "../media/media.service";
 
 @Injectable()
 export class CompaniesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private media: MediaService,
+  ) {}
 
   private generateSlug(name: string): string {
     return name
@@ -127,16 +131,31 @@ export class CompaniesService {
       throw new ForbiddenException('Only the company owner can update company details');
     }
 
+    const { logoUrl, name, ...restData } = updateCompanyDto;
+
+    if (logoUrl === null) {
+      const company = await this.prisma.company.findUnique({
+        where: { id },
+        select: { logoUrl: true },
+      });
+
+      if (company?.logoUrl) {
+        await this.media.deleteFileByUrl(company.logoUrl);
+      }
+    }
+
     let slug;
-    if (updateCompanyDto.name) {
-      slug = this.generateSlug(updateCompanyDto.name);
+    if (name) {
+      slug = this.generateSlug(name);
     }
 
     return this.prisma.company.update({
       where: { id },
       data: {
-        ...updateCompanyDto,
+        ...restData,
+        name,
         slug,
+        logoUrl: logoUrl === null ? null : logoUrl,
       },
     });
   }
@@ -146,6 +165,15 @@ export class CompaniesService {
 
     if (user?.companyId !== id || user?.companyRole !== 'OWNER') {
       throw new ForbiddenException('Only the company owner can delete the company');
+    }
+
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+      select: { logoUrl: true },
+    });
+
+    if (company?.logoUrl) {
+      await this.media.deleteFileByUrl(company.logoUrl);
     }
 
     return this.prisma.company.delete({

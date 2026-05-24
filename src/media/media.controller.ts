@@ -43,4 +43,25 @@ export class MediaController {
 
     return { url };
   }
+
+  @Post('upload-company-logo')
+  @ApiOperation({ summary: 'Upload company logo (Only for company owners)' })
+  @ApiResponse({ status: 201, description: 'Company logo uploaded successfully.' })
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_req, file, callback) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return callback(new BadRequestException('Only image files are allowed'), false);
+      }
+      callback(null, true);
+    },
+  }))
+  async uploadCompanyLogo(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() userId: string,
+  ) {
+    if (!file) throw new BadRequestException('File is required');
+    const url = await this.mediaService.uploadCompanyLogo(file, userId);
+    return { url };
+  }
 }

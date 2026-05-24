@@ -23,16 +23,16 @@ export class CreateCompanyDto {
     description: 'Link to logo'
   })
   @IsOptional()
-  @IsUrl()
-  logoUrl?: string;
+  @IsUrl({}, { message: 'Logo URL must be a valid URL' })
+  logoUrl?: string | null;
 
   @ApiPropertyOptional({
     example: 'https://burodvka.com',
     description: 'Official site'
   })
   @IsOptional()
-  @IsUrl()
-  websiteUrl?: string;
+  @IsUrl({}, { message: 'Website URL must be a valid URL' })
+  websiteUrl?: string | null;
 
   @ApiProperty({
     enum: CompanyType,

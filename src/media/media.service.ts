@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {BadRequestException, ForbiddenException, Injectable, InternalServerErrorException} from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { Readable } from 'stream';
 import { PrismaService } from '../prisma.service';
@@ -56,6 +56,50 @@ export class MediaService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl: uploadResult.secure_url },
+    });
+
+    return uploadResult.secure_url;
+  }
+
+  async uploadCompanyLogo(file: Express.Multer.File, userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { companyId: true, companyRole: true }
+    });
+
+    if (!user?.companyId) {
+      throw new BadRequestException('You are not attached to any company');
+    }
+
+    if (user.companyRole !== 'OWNER') {
+      throw new ForbiddenException('Only the company owner can upload a logo');
+    }
+
+    const company = await this.prisma.company.findUnique({
+      where: { id: user.companyId },
+      select: { logoUrl: true }
+    });
+
+    if (company?.logoUrl) {
+      await this.deleteFileByUrl(company.logoUrl);
+    }
+
+    const folder = 'companies-logos';
+    const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const upload = cloudinary.uploader.upload_stream(
+        { folder },
+        (error, result) => {
+          if (error) return reject(new InternalServerErrorException('Cloudinary upload failed'));
+          if (!result) return reject(new InternalServerErrorException('No response from Cloudinary'));
+          resolve(result);
+        },
+      );
+      Readable.from(file.buffer).pipe(upload);
+    });
+
+    await this.prisma.company.update({
+      where: { id: user.companyId },
+      data: { logoUrl: uploadResult.secure_url },
     });
 
     return uploadResult.secure_url;
