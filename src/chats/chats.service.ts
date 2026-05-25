@@ -15,7 +15,7 @@ export class ChatsService {
       },
       include: {
         vacancy: {
-          select: { title: true, company: { select: { name: true, logoUrl: true } } }
+          select: { title: true, company: { select: { id: true, name: true, logoUrl: true } } }
         },
         applicant: {
           select: { id: true, name: true, avatarUrl: true }
