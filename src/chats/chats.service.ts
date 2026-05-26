@@ -18,7 +18,7 @@ export class ChatsService {
           select: { title: true, company: { select: { id: true, name: true, logoUrl: true } } }
         },
         applicant: {
-          select: { id: true, name: true, avatarUrl: true }
+          select: { id: true, name: true, surname: true, avatarUrl: true }
         },
         messages: {
           orderBy: { createdAt: 'desc' },
@@ -72,7 +72,7 @@ export class ChatsService {
       cursor: cursor ? { id: cursor } : undefined,
       orderBy: { createdAt: 'asc' },
       include: {
-        sender: { select: { id: true, name: true, avatarUrl: true } }
+        sender: { select: { id: true, name: true, surname: true, avatarUrl: true } }
       }
     });
 
@@ -102,7 +102,7 @@ export class ChatsService {
         senderId
       },
       include: {
-        sender: { select: { id: true, name: true, avatarUrl: true } }
+        sender: { select: { id: true, name: true, surname: true, avatarUrl: true } }
       }
     });
 

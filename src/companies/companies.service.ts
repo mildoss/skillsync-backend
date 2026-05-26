@@ -115,7 +115,7 @@ export class CompaniesService {
           }
         },
         employees: {
-          select: { id: true, name: true, position: true, avatarUrl: true }
+          select: { id: true, name: true, surname: true, position: true, avatarUrl: true }
         }
       }
     });
@@ -297,7 +297,7 @@ export class CompaniesService {
     return this.prisma.companyJoinRequest.findMany({
       where: { companyId, status: 'PENDING' },
       include: {
-        user: { select: { id: true, name: true, email: true, avatarUrl: true } }
+        user: { select: { id: true, name: true, surname: true, email: true, avatarUrl: true } }
       }
     });
   }

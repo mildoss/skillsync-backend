@@ -1,13 +1,19 @@
-import {IsString, IsOptional, IsArray, IsUrl, IsNumber, IsBoolean} from 'class-validator';
+import {IsString, IsOptional, IsArray, IsUrl, IsNumber, IsBoolean, MinLength} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {Type} from "class-transformer";
 import {EmploymentType, VacancyType} from "../../../generated/prisma/enums";
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({ example: 'Benya Shaslycnikov', description: 'Full name of the user' })
+  @ApiPropertyOptional({ example: 'Benya', description: 'Name of the user' })
   @IsOptional()
   @IsString()
+  @MinLength(2, { message: 'Name cannot be empty' })
   name?: string;
+
+  @ApiPropertyOptional({ example: 'Antonov', description: 'Surname name of the user' })
+  @IsOptional()
+  @IsString()
+  surname?: string;
 
   @ApiPropertyOptional({ example: 'Passionate Backend Developer...', description: 'Short biography' })
   @IsOptional()

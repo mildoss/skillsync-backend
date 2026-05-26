@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma.service';
 import { SearchUsersDto } from './dto/search-user.dto';
@@ -12,8 +12,8 @@ export class UsersService {
     private media: MediaService,
   ) {}
 
-  async createUser(payload: { userId: number, email: string, username: string, role: Role }) {
-    const { userId, email, username, role } = payload;
+  async createUser(payload: { userId: number, email: string, role: Role }) {
+    const { userId, email, role } = payload;
     const safeId = String(userId);
 
     try {
@@ -23,7 +23,6 @@ export class UsersService {
         create: {
           id: safeId,
           email,
-          name: username,
           role,
         },
       });
@@ -56,6 +55,7 @@ export class UsersService {
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
+        { surname: { contains: search, mode: 'insensitive' } },
         { position: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -101,6 +101,7 @@ export class UsersService {
         select: {
           id: true,
           name: true,
+          surname: true,
           position: true,
           category: true,
           location: true,
@@ -135,6 +136,7 @@ export class UsersService {
       select: {
         id: true,
         name: true,
+        surname: true,
         position: true,
         about: true,
         avatarUrl: true,
@@ -201,7 +203,16 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.findOne(id);
+    const currentUser = await this.findOne(id);
+
+    if (updateUserDto.isActive === true) {
+      const futureName = updateUserDto.name !== undefined ? updateUserDto.name : currentUser.name;
+
+      if (!futureName) {
+        throw new BadRequestException('You must provide your first name before publishing your profile.');
+      }
+    }
+
     const { skills, languages, location, avatarUrl, ...restData } = updateUserDto;
 
     if (avatarUrl === null) {

@@ -150,7 +150,7 @@ export class ApplicationsService {
       where: { vacancyId },
       include: {
         applicant: {
-          select: { id: true, name: true, position: true, avatarUrl: true, experience: true }
+          select: { id: true, name: true, surname: true, position: true, avatarUrl: true, experience: true }
         }
       },
       orderBy: { createdAt: 'desc' }

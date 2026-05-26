@@ -16,7 +16,7 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Listen to user registration from Gateway (Kafka Event)' })
   @EventPattern('topic-registration')
-  async createUser(@Payload() message: { userId: number, email: string, username: string, role: Role }) {
+  async createUser(@Payload() message: { userId: number, email: string, role: Role }) {
     await this.usersService.createUser(message);
   }
 
