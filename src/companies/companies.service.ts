@@ -208,6 +208,11 @@ export class CompaniesService {
   async applyToCompany(companyId: string, userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
+
+    if (!user.name) {
+      throw new BadRequestException('You must provide your first name before applying to join a company.');
+    }
+
     if (user.companyId) throw new BadRequestException('You are already in a company');
 
     const existingRequest = await this.prisma.companyJoinRequest.findUnique({
