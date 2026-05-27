@@ -9,6 +9,18 @@ export class ApplicationsService {
   constructor(private prisma: PrismaService) {}
 
   async create(applicantId: string, createApplicationDto: CreateApplicationDto) {
+    const applicant = await this.prisma.user.findUnique({
+      where: { id: applicantId }
+    });
+
+    if (!applicant) {
+      throw new NotFoundException('Applicant not found');
+    }
+
+    if (!applicant.isActive) {
+      throw new BadRequestException('You must complete and publish your profile before applying.');
+    }
+
     const vacancy = await this.prisma.vacancy.findUnique({
       where: { id: createApplicationDto.vacancyId }
     });
