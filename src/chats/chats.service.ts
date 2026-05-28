@@ -94,12 +94,13 @@ export class ChatsService {
     });
   }
 
-  async saveMessage(applicationId: string, senderId: string, text: string) {
+  async saveMessage(applicationId: string, senderId: string, text: string, isSystem: boolean = false) {
     const message = await this.prisma.message.create({
       data: {
         text,
         applicationId,
-        senderId
+        senderId,
+        isSystem
       },
       include: {
         sender: { select: { id: true, name: true, surname: true, avatarUrl: true } }

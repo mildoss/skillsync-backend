@@ -3,10 +3,16 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { PrismaService } from '../prisma.service';
 import {InviteCandidateDto} from "./dto/invite-candidate.dto";
+import {ChatsService} from "../chats/chats.service";
+import {ChatsGateway} from "../chats/chats.gateway";
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private chatsService: ChatsService,
+    private chatsGateway: ChatsGateway
+  ) {}
 
   async create(applicantId: string, createApplicationDto: CreateApplicationDto) {
     const applicant = await this.prisma.user.findUnique({
@@ -187,6 +193,19 @@ export class ApplicationsService {
       where: { id },
       data: { status: updateDto.status }
     });
+
+    const systemMessage = await this.chatsService.saveMessage(
+      id,
+      hrId,
+      `Application status updated to ${updateDto.status}`,
+      true
+    );
+
+    this.chatsGateway.server.to(id).emit('applicationStatusChanged', {
+      applicationId: id,
+      newStatus: updateDto.status
+    });
+    this.chatsGateway.server.to(id).emit('receiveMessage', systemMessage);
 
     await this.prisma.notification.create({
       data: {

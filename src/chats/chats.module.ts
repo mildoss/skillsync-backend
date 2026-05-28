@@ -8,5 +8,6 @@ import {WsJwtService} from "../auth/ws-jwt.service";
 @Module({
   controllers: [ChatsController],
   providers: [ChatsService, PrismaService, ChatsGateway, WsJwtService],
+  exports: [ChatsService, ChatsGateway],
 })
 export class ChatsModule {}

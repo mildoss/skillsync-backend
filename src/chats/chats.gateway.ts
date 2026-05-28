@@ -104,6 +104,27 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
+      const application = await this.prisma.application.findUnique({
+        where: { id: payload.applicationId },
+        include: { vacancy: { select: { isActive: true } } }
+      });
+
+      if (!application) return client.emit('error', { message: 'Chat not found' });
+
+      if (!application.vacancy.isActive) {
+        return client.emit('error', { message: 'This vacancy is closed. Chat is frozen.' });
+      }
+
+      const isApplicant = application.applicantId === userId;
+
+      if (isApplicant && application.status === 'PENDING') {
+        return client.emit('error', { message: 'Wait for the recruiter to accept your application.' });
+      }
+
+      if (application.status === 'REJECTED') {
+        return client.emit('error', { message: 'Discussion closed. Application rejected.' });
+      }
+
       const savedMessage = await this.chatsService.saveMessage(
         payload.applicationId,
         userId,
