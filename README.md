@@ -64,6 +64,7 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 NODE_ENV=development
+FRONTEND_URL=your_frontend
 ```
 
 4. Run database migrations and generate the Prisma client:
@@ -181,4 +182,4 @@ This is the core service of the SkillSync platform ecosystem. Other services inc
 
 ---
 
-*Last Updated: 2026-05-29*
+*Last Updated: 2026-05-30*
