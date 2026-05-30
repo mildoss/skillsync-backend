@@ -1,85 +1,184 @@
-# 🚀 SkillSync Core Backend API
+# SkillSync Backend - Core Service
 
-The core business logic microservice for the **SkillSync Job Board Platform**.
-Built with NestJS, this service handles user profiles, company management, job vacancies, applications, and acts as the central data source. It communicates with a Java API Gateway via HTTP and Kafka.
+A robust TypeScript-based core backend API built with NestJS, Prisma ORM, and PostgreSQL for the SkillSync Job Board platform.
 
-## 🛠️ Tech Stack
+## Overview
 
-- **Framework:** [NestJS](https://nestjs.com/) (v11)
-- **Database & ORM:** PostgreSQL + [Prisma](https://www.prisma.io/) (v7)
-- **Message Broker:** [Kafka](https://kafka.apache.org/) (for asynchronous events)
-- **Validation:** `class-validator` & `class-transformer`
-- **Documentation:** Swagger (OpenAPI)
+The SkillSync Core Backend Service is the central monolithic hub of the SkillSync ecosystem. It handles primary business logic, user and company management, job postings (vacancies), applications, and real-time communications. It provides a structured RESTful API and integrates with other microservices (Payment, AI) via an asynchronous event-driven architecture using Kafka.
 
-## 🏗️ Architecture & Authentication
+## Features
 
-This service is designed to run behind an **API Gateway**.
-It **does not** handle JWT verification directly. Instead, it trusts the API Gateway to authenticate users and pass the user context via HTTP Headers:
+- **Core Business Logic**: Comprehensive management of users, companies, vacancies, and job applications.
+- **Real-time Communication**: Built-in WebSockets (Socket.io) for real-time chats and system notifications.
+- **Database Management**: PostgreSQL integration via Prisma ORM for robust, type-safe data modeling.
+- **Microservices Integration**: Kafka messaging for event-driven asynchronous communication with AI and Payment services.
+- **Media Management**: Cloudinary integration for handling file and image uploads.
+- **Authentication & Authorization**: Secure JWT-based authentication and Role-Based Access Control (RBAC).
+- **API Documentation**: Automated Swagger UI integration for clear endpoint exploration.
 
-- `x-user-id`: UUID of the authenticated user.
-- `x-user-role`: The global role of the user (e.g., `APPLICANT` or `EMPLOYER`).
+## Tech Stack
 
-*Custom Decorators (`@CurrentUser`, `@Roles`) and Guards (`RolesGuard`) are used across controllers to enforce Role-Based Access Control (RBAC).*
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | NestJS 11.0.1 |
+| Language | TypeScript |
+| ORM | Prisma 7.4.2 |
+| Database | PostgreSQL |
+| Message Queue | Kafka (KafkaJS 2.2.4) |
+| Real-time | Socket.io |
+| Media Storage | Cloudinary |
+| Build Tool | TypeScript Compiler / Nest CLI |
 
-## 📦 Core Modules
+## Prerequisites
 
-- **`Users`**: Applicant and recruiter profiles. Listens to Kafka `topic-registration` for new users.
-- **`Companies`**: Company CRUD, joining requests, and employer management.
-- **`Vacancies`**: Job postings with advanced filtering, pagination, and relation to skills/languages.
-- **`Applications`**: Inbound job applications, outbound recruiter invitations, and status tracking.
-- **`Dictionaries`**: Static catalogs (Skills, Languages, Categories).
+- Node.js (v18 or higher recommended)
+- npm or yarn
+- PostgreSQL database instance
+- Kafka cluster
+- Cloudinary account credentials
 
-## 🚀 Getting Started
+## Installation
 
-### 1. Prerequisites
-- Node.js (v18+)
-- PostgreSQL database
-- Kafka broker (e.g., Aiven or local docker container)
+1. Clone the repository:
 
-### 2. Environment Variables
-Create a `.env` file in the root directory based on `.env.example`:
+```bash
+git clone https://github.com/mildoss/skillsync-backend.git
+cd skillsync-backend
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in the root directory and configure the necessary variables:
 
 ```env
 PORT=3000
 DATABASE_URL="postgresql://user:password@localhost:5432/skillsync?schema=public"
-
-# Kafka Configuration
-KAFKA_BROKER="your-kafka-broker-url:port"
-KAFKA_GROUP_ID="skillsync-nestjs-group"
+KAFKA_BROKER=localhost:9092
+JWT_SECRET=your_jwt_secret_here
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+NODE_ENV=development
 ```
 
-# Install dependencies
-npm install
+4. Run database migrations and generate the Prisma client:
 
-# Generate Prisma Client
-npm run prisma:generate
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
 
-# Push schema to the database (if not using migrations yet)
-npm run prisma:push
+## Usage
 
-# Development mode
+### Development
+
+Start the development server with hot reload:
+
+```bash
 npm run start:dev
+```
 
-# Production mode
+The service starts on `http://localhost:3000` by default. API documentation (Swagger) is available at `http://localhost:3000/api`.
+
+### Production
+
+Build the application:
+
+```bash
 npm run build
+```
+
+Start the production server:
+
+```bash
 npm run start:prod
+```
 
-📚 API Documentation (Swagger)
+## Core Domains & Endpoints
 
-Once the application is running, the interactive OpenAPI documentation is available at:
-👉 http://localhost:3000/api/docs
+The API is logically divided into several domains. Full documentation is available via Swagger UI when the server is running.
 
-You can test endpoints directly from the browser. To emulate the API Gateway, simply provide the x-user-id and x-user-role headers in the Swagger UI.
-📜 Available Scripts
+| Endpoint | Description |
+|---|---|
+| `/users` | User profile and account management |
+| `/companies` | Company profiles and employer operations |
+| `/vacancies` | Job postings and search filters |
+| `/applications` | Job applications and candidate tracking |
+| `/chats` | Real-time messaging (REST & WebSockets) |
+| `/notifications` | System and user notifications |
+| `/media` | File and image upload handling |
+| `/ai` | AI generate service |
+| `/dictionaries` | Static data and dropdown values |
 
-    npm run start:dev - Start application in watch mode.
+## Project Structure
 
-    npm run prisma:studio - Open Prisma Studio to view/edit database records graphically.
+```
+src/
+├── auth/                 # Authentication & Guards (JWT, RBAC)
+├── users/                # User management module
+├── companies/            # Company management module
+├── vacancies/            # Vacancies module
+├── applications/         # Job applications module
+├── chats/                # WebSocket gateways & chat logic
+├── media/                # Cloudinary uploads integration
+├── notifications/        # System notifications module
+├── ai/                   # AI service integration logic
+├── payments/             # Payment service integration logic
+├── dictionaries/         # Get dictionaries   
+├── prisma.service.ts     # Database connection service
+└── main.ts               # Application entry point
+```
 
-    npm run prisma:generate - Re-generate Prisma Client after schema changes.
+## Scripts
 
-    npm run prisma:push - Sync database schema with schema.prisma.
+| Command | Description |
+|---|---|
+| `npm run start:dev` | Start development server with watch mode |
+| `npm run build` | Compile the NestJS application |
+| `npm run start:prod` | Start production server |
+| `npm run lint` | Run ESLint to analyze the code |
+| `npm run format` | Run Prettier to format the code |
+| `npm run test` | Run unit tests |
+| `npm run test:e2e` | Run end-to-end tests |
 
-    npm run seed - Populate the database with initial/mock data (skills, languages, etc.).
+## Development Guidelines
 
-    npm run lint - Run ESLint.
+- **Architecture**: The project follows NestJS modular architecture. Keep domain logic isolated in respective modules.
+- **Database**: All schema changes must be made via `prisma/schema.prisma`. Run `npx prisma migrate dev` after any changes.
+- **Typing**: Use strict typing. DTOs (Data Transfer Objects) must use `class-validator` and `class-transformer` for input validation.
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+This project is UNLICENSED — see the `package.json` file for details.
+
+## Support
+
+For issues, questions, or contributions, please open an issue on the [GitHub repository](https://github.com/mildoss/skillsync-backend).
+
+## Related Projects
+
+This is the core service of the SkillSync platform ecosystem. Other services include:
+
+- [SkillSync Backend - AI Service](https://github.com/mildoss/skillsync-backend-ai)
+- [SkillSync Backend - Payment Service](https://github.com/mildoss/skillsync-backend-payment)
+- [SkillSync Backend - Auth Service](https://github.com/Eugene-Stellar/SkillSync-auth-service)
+- [SkillSync Frontend](https://github.com/mildoss/skillsync-frontend)
+
+---
+
+*Last Updated: 2026-05-29*
