@@ -13,7 +13,7 @@ import { PrismaService } from "../prisma.service";
 import { WsJwtService } from "../auth/ws-jwt.service";
 
 @WebSocketGateway({
-  cors: { origin: '*' },
+  origin: process.env.FRONTEND_URL,
   namespace: '/chats',
   transports: ['websocket']
 })
