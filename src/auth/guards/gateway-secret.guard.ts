@@ -9,6 +9,11 @@ export class GatewaySecretGuard implements CanActivate {
 
     if (context.getType() === 'http') {
       const request = context.switchToHttp().getRequest();
+
+      if (request.url === '/health') {
+        return true;
+      }
+
       const secretHeader = request.headers['x-gateway-secret'];
       const envSecret = process.env.GATEWAY_SECRET;
 
