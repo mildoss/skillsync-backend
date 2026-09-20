@@ -165,7 +165,7 @@ Contributions are welcome! Please follow these steps:
 
 ## License
 
-This project is UNLICENSED — see the `package.json` file for details.
+This project is licensed under the [MIT License](LICENSE).
 
 ## Support
 
@@ -179,7 +179,8 @@ This is the core service of the SkillSync platform ecosystem. Other services inc
 - [SkillSync Backend - Payment Service](https://github.com/mildoss/skillsync-backend-payment)
 - [SkillSync Backend - Auth Service](https://github.com/Eugene-Stellar/SkillSync-auth-service)
 - [SkillSync Frontend](https://github.com/mildoss/skillsync-frontend)
+- [SkillSync Mobile](https://github.com/mildoss/skillsync-mobile)
 
 ---
 
-*Last Updated: 2026-05-30*
+*Last Updated: 2026-09-20*
